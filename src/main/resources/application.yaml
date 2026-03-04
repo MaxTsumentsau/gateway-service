@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: gateway-service
+
+  config:
+    import:
+      - application-secret.yml
+      - "optional:configserver:http://localhost:8888"
+
+  cloud:
+    bus:
+      enabled: true
+    config:
+      uri: http://localhost:8888
+      headers:
+        X-Config-Token: ${CONFIG_TOKEN}
+    stream:
+      defaultBinder: rabbit
+      bindings:
+        springCloudBusInput:
+          destination: springCloudBus
+        springCloudBusOutput:
+          destination: springCloudBus
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: ${RABBIT_USER}
+    password: ${RABBIT_PASSWORD}

@@ -1,0 +1,84 @@
+spring:
+  config:
+    import: "optional:none"
+  cloud:
+    config:
+      enabled: false
+
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      server:
+        webflux:
+          enabled: true
+          routes:
+            - id: notification-service
+              uri: http://localhost:9999
+              predicates:
+                - Path=/api/notifications/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: notificationCB
+                    fallbackUri: forward:/fallback/notification
+                    statusCodes:
+                      - 500
+                      - 501
+                      - 502
+                      - 503
+                      - 504
+
+            - id: user-service
+              uri: http://localhost:9999
+              predicates:
+                - Path=/api/users/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: userCB
+                    fallbackUri: forward:/fallback/user
+                    statusCodes:
+                      - 500
+                      - 501
+                      - 502
+                      - 503
+                      - 504
+      httpclient:
+        connect-timeout: 2s
+        response-timeout: 3s
+
+eureka:
+  client:
+    enabled: false
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      notificationCB:
+        registerHealthIndicator: true
+        slidingWindowSize: 1
+        minimumNumberOfCalls: 1
+        failureRateThreshold: 1
+        waitDurationInOpenState: 3s
+        permittedNumberOfCallsInHalfOpenState: 1
+
+      userCB:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 40
+        waitDurationInOpenState: 5s
+        permittedNumberOfCallsInHalfOpenState: 3
+
+  timelimiter:
+    instances:
+      notificationCB:
+        timeoutDuration: 5s
+      userCB:
+        timeoutDuration: 5s
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    reactor.netty.http.client: INFO

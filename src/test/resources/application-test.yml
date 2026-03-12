@@ -1,10 +1,13 @@
 spring:
+  rabbitmq:
+    host: disabled
   config:
     import: "optional:none"
   cloud:
     config:
       enabled: false
-
+    bus:
+      enabled: false
     gateway:
       discovery:
         locator:

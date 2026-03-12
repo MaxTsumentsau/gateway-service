@@ -1,9 +1,11 @@
 package com.max2ba.gateway_service;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
@@ -29,6 +31,9 @@ public abstract class BaseGatewayTest {
 
      protected static WireMockServer wireMock;
 
+     @Autowired
+     private CircuitBreakerRegistry circuitBreakerRegistry;
+
      @BeforeAll
      static void setupWireMock() {
           wireMock = new WireMockServer(9999);
@@ -48,5 +53,8 @@ public abstract class BaseGatewayTest {
                   .build();
 
           wireMock.resetAll();
+
+          circuitBreakerRegistry.getAllCircuitBreakers()
+                  .forEach(cb -> cb.reset());
      }
 }
